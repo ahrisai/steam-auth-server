@@ -24,14 +24,14 @@ const generateAccessToken= (id:number,name:string) => {
             if(!errors.isEmpty()) {
                 return res.status(404).json({message:errors})
             }
-            const {name,password}=req.body 
-            const candidate = await prisma.user.findFirst({where:{name:name}})
+            const {nickname,password}=req.body 
+            const candidate = await prisma.user.findFirst({where:{nickname:nickname}})
             if(candidate){
                 return res.status(400).json({message:'user already exist'})
             }
             const hash = bcrypt.hashSync(password, saltRounds);
             const user={
-                name:name,
+                ...req.body,
                 password:hash
             }
             const newUser= await prisma.user.create({data:user})
@@ -44,7 +44,7 @@ const generateAccessToken= (id:number,name:string) => {
     login= async (req:Request,res:Response) => {
         const {name,password}=req.body 
         
-        const candidate = await prisma.user.findFirst({where:{name:name}})
+        const candidate = await prisma.user.findFirst({where:{nickname:name}})
         if(!candidate){
             return res.status(404).json('User not found')
         }
@@ -53,7 +53,7 @@ const generateAccessToken= (id:number,name:string) => {
         if(!validPassword){
             return res.status(404).json('uncorrect password')
         }
-        const token = generateAccessToken(candidate.id,candidate.name)
+        const token = generateAccessToken(candidate.id,candidate.nickname)
         return res.cookie('token',token,{httpOnly:true,secure:true,sameSite:'none'}).send()
     }
   }

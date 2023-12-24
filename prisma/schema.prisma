@@ -19,12 +19,14 @@ model User {
   description  String?
   birthday     String
   valorant_data ValorantData? 
+  csgo_data Csgo_data?
+  Teams Team[]
 }
 
 model ValorantData {
   id           Int    @id @default(autoincrement())
   userId       Int @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
   
 }
 
@@ -32,8 +34,16 @@ model ValorantData {
 
 
 model Csgo_data{
-  id    Int    @id @default(autoincrement())
-  userId Int
+  id           Int    @id @default(autoincrement())
+  userId       Int @unique
+  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+}
+
+model Team{
+  id Int
+  userId Int 
+  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  @@unique([id, userId])
 }
 
 

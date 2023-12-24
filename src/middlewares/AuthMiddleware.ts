@@ -15,7 +15,6 @@ if(req.method==='OPTIONS'||req.path==='/api/login'||req.path==='/api/registratio
 
 try {
    const token = req.cookies.token
-   
    if(!token){
     return res.status(403).json({message:'user not authorized'})
    }
@@ -23,7 +22,6 @@ try {
    req.user=decoded
    next()
 } catch (e) {
-    console.log(e)
     return res.status(403).json({message:'user not authorized'})
 }
 }
