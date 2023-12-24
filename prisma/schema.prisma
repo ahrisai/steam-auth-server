@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  nickname     String
+  email        String
+  password     String
+  user_avatar  String?
+  description  String?
+  birthday     String
+  valorant_data ValorantData? 
+}
+
+model ValorantData {
+  id           Int    @id @default(autoincrement())
+  userId       Int @unique
+  user   User   @relation(fields: [userId], references: [id])
+  
+}
+
+
+
+
+model Csgo_data{
+  id    Int    @id @default(autoincrement())
+  userId Int
+}
+
+
+
+
+
+// export interface User{
+//     id:number,
+//     nickname:string,
+//     email:string,
+//     password:string,
+//     user_avatar:Blob,
+//     description:string,
+//     gender:string,
+//     birthday:string,
+//     valorant_data:ValorantData,
+//     csgo_data:CsGoData,
+//     teams:Team[]
+// }
+
+// interface ValorantData{
+// userId:number
+// }
+
+// interface CsGoData{
+// userId:number
+    
+// }
+
+// interface Team{
+//     ownerId:number
+// }
