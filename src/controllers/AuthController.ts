@@ -24,20 +24,20 @@ const generateAccessToken= (id:number,name:string) => {
             const {nickname,password}=req.body 
             const candidate = await prisma.user.findFirst({where:{nickname:nickname}})
             if(candidate){
-                return res.status(400).json({message:'user already exist'})
+                return res.status(400).json({message:`user ${nickname} already exist`})
             }
             const hash = bcrypt.hashSync(password, saltRounds);
+            console.log(hash)
             const user={
-                password:hash,
                 ...req.body
-               
             }
-            console.log(user)
-            const newUser= await prisma.user.create({data:user})
+           
+            
+            const newUser= await prisma.user.create({data:{...user, password:hash}})
             res.json(newUser)
         } catch (error) {
          console.log(error)
-            res.status(400).json({message:'reg error'})
+            res.status(400).json({message:'reg error, try again'})
         }
     }
     login= async (req:Request,res:Response) => {
