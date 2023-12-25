@@ -15,6 +15,7 @@ model User {
   nickname     String
   email        String
   password     String
+  gender String
   user_avatar  String?
   description  String?
   birthday     String

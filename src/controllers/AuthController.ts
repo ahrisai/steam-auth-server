@@ -1,7 +1,6 @@
 import { User } from './../queryTypes.js';
 import { PrismaClient } from "@prisma/client";
 import { Request,Response } from "express";
-import { validationResult } from 'express-validator/src/validation-result.js';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { secretKey } from '../config.js';
@@ -15,15 +14,13 @@ const generateAccessToken= (id:number,name:string) => {
   }
 
   const prisma = new PrismaClient();
-  const saltRounds = 5;
+  const saltRounds = 7;
 
   class AuthController{
     registration= async (req:Request,res:Response) => {
         try {
-            const errors=validationResult(req)
-            if(!errors.isEmpty()) {
-                return res.status(404).json({message:errors})
-            }
+            
+           
             const {nickname,password}=req.body 
             const candidate = await prisma.user.findFirst({where:{nickname:nickname}})
             if(candidate){
@@ -31,13 +28,15 @@ const generateAccessToken= (id:number,name:string) => {
             }
             const hash = bcrypt.hashSync(password, saltRounds);
             const user={
-                ...req.body,
-                password:hash
+                password:hash,
+                ...req.body
+               
             }
+            console.log(user)
             const newUser= await prisma.user.create({data:user})
             res.json(newUser)
         } catch (error) {
-         
+         console.log(error)
             res.status(400).json({message:'reg error'})
         }
     }

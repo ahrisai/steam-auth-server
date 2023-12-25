@@ -3,13 +3,13 @@ export interface User{
     nickname:string,
     email:string,
     password:string,
-    user_avatar:Blob,
-    description:string,
+    user_avatar?:string,
+    description?:string,
     gender:string,
     birthday:string,
-    valorant_data:ValorantData,
-    csgo_data:CsGoData,
-    teams:Team[]
+    valorant_data?:ValorantData,
+    csgo_data?:CsGoData,
+    teams?:Team[]
 }
 
 interface ValorantData{
