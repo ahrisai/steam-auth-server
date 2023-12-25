@@ -41,19 +41,21 @@ const generateAccessToken= (id:number,name:string) => {
         }
     }
     login= async (req:Request,res:Response) => {
-        const {name,password}=req.body 
-        
-        const candidate = await prisma.user.findFirst({where:{nickname:name}})
+        const {nickname,password}=req.body 
+
+        const candidate = await prisma.user.findFirst({where:{nickname:nickname}})
         if(!candidate){
-            return res.status(404).json('User not found')
+            
+            return res.status(404).json('Uncorrect login or password')
         }
             
         const validPassword=bcrypt.compareSync(password,candidate.password)
+        console.log(validPassword)
         if(!validPassword){
-            return res.status(404).json('uncorrect password')
+            return res.status(404).json('Uncorrect login or password')
         }
         const token = generateAccessToken(candidate.id,candidate.nickname)
-        return res.cookie('token',token,{httpOnly:true,secure:true,sameSite:'none'}).send()
+        return res.cookie('token',token,{httpOnly:false,secure:true,sameSite:'none'}).json('ok')
     }
   }
 
