@@ -14,12 +14,16 @@ if(req.method==='OPTIONS'||req.path==='/api/login'||req.path==='/api/registratio
 }
 
 try {
+    
    const token = req.cookies.token
    if(!token){
     return res.status(403).json({message:'user not authorized'})
    }
    const decoded=jwt.verify(token,secretKey)
    req.user=decoded
+   if(req.path==='api/check'){
+    return res.status(202).json({message:'true'})
+   }
    next()
 } catch (e) {
     return res.status(403).json({message:'user not authorized'})

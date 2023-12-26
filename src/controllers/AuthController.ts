@@ -2,7 +2,7 @@ import { User } from './../queryTypes.js';
 import { PrismaClient } from "@prisma/client";
 import { Request,Response } from "express";
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+import jwt,{JwtPayload} from 'jsonwebtoken'
 import { secretKey } from '../config.js';
 
 const generateAccessToken= (id:number,name:string) => {
@@ -55,7 +55,26 @@ const generateAccessToken= (id:number,name:string) => {
             return res.status(404).json('Uncorrect login or password')
         }
         const token = generateAccessToken(candidate.id,candidate.nickname)
-        return res.cookie('token',token,{httpOnly:false,secure:true,sameSite:'none'}).json('ok')
+        return res.cookie('token',token,{httpOnly:false,secure:true,sameSite:'none'}).json(nickname)
+    }
+    check=async(req:Request,res:Response)=>{
+        try {
+    
+            const token = req.cookies.token
+            if(!token){
+             return res.status(403).json({message:'user not authorized'})
+            }
+            const user :JwtPayload  =jwt.verify(token,secretKey) as JwtPayload
+            
+            
+            const candidate = await prisma.user.findFirst({where:{nickname:user.name}})
+            if(candidate) return res.status(200).json(true)
+            else return res.json(false)
+           
+         } catch (e) {
+             return res.status(403).json({message:'user not authorized'})
+         }
+         
     }
   }
 

@@ -7,6 +7,7 @@ const authRouter = Router()
 
 authRouter.post('/registration',AuthController.registration)
 authRouter.post('/login',AuthController.login)
+authRouter.get('/check',AuthController.check)
 
 
 
