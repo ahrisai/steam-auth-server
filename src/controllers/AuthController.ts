@@ -50,12 +50,12 @@ const generateAccessToken= (id:number,name:string) => {
         }
             
         const validPassword=bcrypt.compareSync(password,candidate.password)
-        console.log(validPassword)
+        
         if(!validPassword){
             return res.status(404).json('Uncorrect login or password')
         }
         const token = generateAccessToken(candidate.id,candidate.nickname)
-        return res.cookie('token',token,{httpOnly:false,secure:true,sameSite:'none'}).json(nickname)
+        return res.cookie('token',token,{httpOnly:false,secure:true,sameSite:'none'}).json({...candidate,password:undefined,email:undefined})
     }
     check=async(req:Request,res:Response)=>{
         try {
@@ -68,7 +68,9 @@ const generateAccessToken= (id:number,name:string) => {
             
             
             const candidate = await prisma.user.findFirst({where:{nickname:user.name}})
-            if(candidate) return res.status(200).json(true)
+            
+            
+            if(candidate) return res.status(200).json({...candidate,password:undefined,email:undefined})
             else return res.json(false)
            
          } catch (e) {
