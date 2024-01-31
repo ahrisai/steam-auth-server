@@ -38,8 +38,7 @@ app
     cookie: { secure: true }
   }));
   passport.serializeUser((data, done) => {
-    
-    csgoData={...data}
+    if(data!=='noData') csgoData={...data}
     
     done(null, data); 
   });
@@ -51,7 +50,7 @@ app
     if(req.body){
       
 
-    if(Object.keys(csgoData).length===0) return res.cookie('_csData','noSteam').redirect(303, `http://localhost:5173/home`);
+    if(Object.keys(csgoData).length===0) return res.cookie('_csData','noFaceit').redirect(303, `http://localhost:5173/home`);
     
       const jwtUser:JwtUser=req.body as JwtUser
 

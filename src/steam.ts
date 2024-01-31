@@ -4,8 +4,9 @@ import passport from 'passport'
 import SteamStrategy from 'passport-steam';
 import { CsGoData } from './queryTypes.js';
 import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv'
 const prisma = new PrismaClient();
-
+dotenv.config()
 function parseText(text:string) {
   const pattern = /Matches: (\d+)ELO: (\d+)K\/D: ([0-9.]+)Winrt: ([0-9.]+)%Wins: (\d+)HS: ([0-9.]+)%/;
 
@@ -61,7 +62,7 @@ const steamStrategyClosure = () => {
           }
           
         }
-        
+        else done(null,'noData')
   
   
       });
