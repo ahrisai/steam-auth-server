@@ -1,3 +1,8 @@
+
+export interface JwtUser{
+    id:number
+    name:string
+}
 export interface User{
     id:number,
     nickname:string,
@@ -10,15 +15,23 @@ export interface User{
     valorant_data?:ValorantData,
     csgo_data?:CsGoData,
     teams?:Team[]
+    steamId?:string
 }
 
 interface ValorantData{
 userId:number
 }
 
-interface CsGoData{
+export interface CsGoData{
 userId:number
-    
+steamId:string
+matches:number
+elo:number
+winrate:number
+kd:number
+wins:number,
+hs:number,
+lvlImg:string
 }
 
 interface Team{

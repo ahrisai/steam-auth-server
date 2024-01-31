@@ -15,36 +15,42 @@ model User {
   nickname     String
   email        String
   password     String
-  gender String
+  gender       String
   user_avatar  String?
   description  String?
   birthday     String
-  valorant_data ValorantData? 
-  csgo_data Csgo_data?
-  Teams Team[]
+  valorant_data Valorant_Data? 
+  csgo_data     Csgo_data?
+  teams         Team[]
 }
 
-model ValorantData {
+model Valorant_Data {
   id           Int    @id @default(autoincrement())
-  userId       Int @unique
-  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int    @unique
   
 }
 
-
-
-
-model Csgo_data{
+model Csgo_data {
   id           Int    @id @default(autoincrement())
-  userId       Int @unique
-  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int    @unique
+  
+  steamId      String
+  matches      Int
+  winrate      Float
+  kd           Float
+  wins         Int
+  hs           Float
+  lvlImg       String
+  elo Int
 }
 
-model Team{
-  id Int
-  userId Int 
-  user   User   @relation(fields: [userId], references: [id],onDelete: Cascade)
-  @@unique([id, userId])
+model Team {
+  id     Int   @id @default(autoincrement())
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @unique 
+  
 }
 
 
