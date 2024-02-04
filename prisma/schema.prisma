@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,75 +8,73 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  nickname     String
-  email        String
-  password     String
-  gender       String
-  user_avatar  String?
-  description  String?
-  birthday     String
-  valorant_data Valorant_Data? 
-  csgo_data     Csgo_data?
-  teams         Team[]
+  id            Int            @id @default(autoincrement())
+  nickname      String
+  email         String
+  password      String
+  user_avatar   String?
+  description   String?
+  birthday      String
+  gender        String
+  csgo_data     Cs2_data?
+  teams         Team?
+  valorant_data Valorant_Data?
 }
 
 model Valorant_Data {
-  id           Int    @id @default(autoincrement())
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int    @unique
-  
-}
-
-model Csgo_data {
-  id           Int    @id @default(autoincrement())
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int    @unique
-  
-  steamId      String
-  matches      Int
-  winrate      Float
-  kd           Float
-  wins         Int
-  hs           Float
-  lvlImg       String
-  elo Int
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Team {
-  id     Int   @id @default(autoincrement())
-  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int @unique 
-  
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Cs2_data {
+  id      Int                @id @default(autoincrement())
+  userId  Int                @unique
+  steamId String
+  matches Int
+  winrate Float
+  kd      Float
+  wins    Int
+  hs      Float
+  lvlImg  String
+  elo     Int
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  maps    Cs2_dataCs2Maps[]
+  roles   Cs2_dataCs2Roles[]
+}
 
+model Cs2Roles {
+  id    Int                @id @default(autoincrement())
+  name  String             @unique
+  roles Cs2_dataCs2Roles[]
+}
 
+model Cs2Maps {
+  id   Int               @id @default(autoincrement())
+  name String            @unique
+  maps Cs2_dataCs2Maps[]
+}
 
+model Cs2_dataCs2Roles {
+  cs2_dataId Int
+  cs2RoleId  Int
+  cs2Role    Cs2Roles @relation(fields: [cs2RoleId], references: [id])
+  csgo_data  Cs2_data @relation(fields: [cs2_dataId], references: [id])
 
-// export interface User{
-//     id:number,
-//     nickname:string,
-//     email:string,
-//     password:string,
-//     user_avatar:Blob,
-//     description:string,
-//     gender:string,
-//     birthday:string,
-//     valorant_data:ValorantData,
-//     csgo_data:CsGoData,
-//     teams:Team[]
-// }
+  @@id([cs2_dataId, cs2RoleId])
+}
 
-// interface ValorantData{
-// userId:number
-// }
+model Cs2_dataCs2Maps {
+  cs2_dataId Int
+  cs2MapId   Int
+  cs2Map     Cs2Maps  @relation(fields: [cs2MapId], references: [id])
+  csgo_data  Cs2_data @relation(fields: [cs2_dataId], references: [id])
 
-// interface CsGoData{
-// userId:number
-    
-// }
-
-// interface Team{
-//     ownerId:number
-// }
+  @@id([cs2_dataId, cs2MapId])
+}
