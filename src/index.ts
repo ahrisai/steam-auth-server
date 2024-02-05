@@ -82,8 +82,8 @@ app.get(
           data: { ...newCsGoData },
         });
         return res
-          .cookie("_csData", JSON.stringify(newCsGoData))
-          .redirect(303, `http://localhost:5173/home`);
+          .cookie('_gc','cs2')
+          .redirect(303, `http://localhost:5173/creation/cs2`);
       }
     }
   }
