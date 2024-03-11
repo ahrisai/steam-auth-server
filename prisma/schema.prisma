@@ -1,3 +1,5 @@
+
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,6 +17,7 @@ model User {
   user_avatar   String?
   description   String?
   birthday      String
+  age Int
   gender        String
   csgo_data     Cs2_data?
   teams         Team?
