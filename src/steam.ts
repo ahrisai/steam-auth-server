@@ -38,7 +38,12 @@ const steamStrategyClosure = () => {
       const steamId = profile._json.steamid;
 
       const { data } = await axios.get<string>(
-        `https://faceitfinder.com/profile/${steamId}`
+        `https://faceitfinder.com/profile/${steamId}`,
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        }
       );
       const $ = cheerio.load(data);
 
