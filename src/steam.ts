@@ -3,30 +3,10 @@ import cheerio from "cheerio";
 import passport from "passport";
 import SteamStrategy from "passport-steam";
 import { CsGoData } from "./queryTypes.js";
-import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
-const prisma = new PrismaClient();
+import parseRelativeDate from "./parseRelativeDate.js";
+
 dotenv.config();
-function parseText(text: string) {
-  const pattern =
-    /Matches: (\d+)ELO: (\d+)K\/D: ([0-9.]+)Winrt: ([0-9.]+)%Wins: (\d+)HS: ([0-9.]+)%/;
-
-  const match = text.match(pattern);
-
-  if (match) {
-    const matchesObject = {
-      matches: parseInt(match[1]),
-      elo: parseInt(match[2]),
-      kd: parseFloat(match[3]),
-      winrate: parseFloat(match[4]),
-      wins: parseInt(match[5]),
-      hs: parseFloat(match[6]),
-    } as CsGoData;
-    return matchesObject;
-  } else {
-    return null;
-  }
-}
 
 const steamStrategyClosure = () => {
   return (
@@ -35,36 +15,115 @@ const steamStrategyClosure = () => {
     done: (error: any, user?: any, info?: any) => void
   ) => {
     process.nextTick(async function () {
-      const steamId = profile._json.steamid;
+      const steamId = (profile._json.steamid as string).trim();
 
-      const { data } = await axios.get<string>(
-        `https://faceitfinder.com/profile/${steamId}`,
-        {
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        }
-      );
+      // const steamId = "76561198970709193";
+      console.log(steamId);
+
+      const response = await axios
+        .get(`https://faceittracker.net/steam-profile/${steamId}`, {
+          withCredentials: false,
+        })
+        .catch((error) => console.log(error));
+
+      const data = response?.data;
       const $ = cheerio.load(data);
 
-      const faceitData = $(".account-faceit-stats-single").text();
+      const playerLinkElement = $("a.faceit_profile-link");
+      const playerName = playerLinkElement.find("div.left").text().trim();
+      const playerLevelImgSrc =
+        "https://faceittracker.net" +
+        playerLinkElement.find("div.right img.lvl").attr("src");
+      if (playerName) {
+        console.log(playerName);
+        const { data } = await axios.get<string>(
+          `https://faceittracker.net/players/${playerName}`,
+          {
+            headers: {
+              "Cache-Control": "no-cache",
+              withCredentials: false,
+            },
+          }
+        );
+        const $ = cheerio.load(data);
 
-      if (faceitData) {
-        const result = parseText(faceitData);
-        const faceitLvl =
-          "https://faceitfinder.com/" +
-          $(".account-faceit-level > a > img").attr("src");
+        const elo = parseInt($("span.player-elo").text());
+        const statsCards = $(".stats-card-wrapper .stats-card");
 
-        if (result) {
+        let stats: any = {};
+
+        statsCards.each((index, element) => {
+          const title = $(element).find(".stats-card-title").text().trim();
+          const rate = $(element).find(".stats-card-rate").text().trim();
+          stats[title] = rate;
+        });
+        const totalWinsElement = $("li")
+          .filter((i, el) => $(el).text().trim() === "Total Win:")
+          .next();
+        const totalWins = parseInt(totalWinsElement.text().trim());
+        const kd = parseFloat(stats["K/D Ratio"]);
+        const hs = parseFloat(stats["Headshots"]);
+        const totalMatches = parseInt(stats["Matches"]);
+        const winrate = parseFloat(stats["Winrate"]);
+        const recentMatches = $(".r-macthes-wrapper").html();
+        const matchCards = $('a[rel="nofollow"] .r-macthes-card');
+
+        let matches: any = [];
+
+        matchCards.each((index, element) => {
+          let match: any = {};
+          const infoBlocks = $(element).find(".r-macthes-info");
+
+          infoBlocks.each((i, block) => {
+            const title = $(block).find(".title, .result").text().trim();
+            const value = $(block).find("span").text().trim();
+
+            if (title === "") {
+              match.map = value;
+            } else if (title === "K - A - D") {
+              match.kad = value;
+            } else if (title === "Elo Point") {
+              match.eloChange = value;
+            } else if (title === "Loss" || title === "Win") {
+              match.result = title === "Loss" ? false : true;
+              match.stat = value;
+            } else if (title === "Rating") {
+              match.kd = parseFloat(value);
+            } else if (title === "Date") {
+              if (!value.includes("ago")) {
+                const dateString = value.replace(" - ", " ");
+                match.date = new Date(dateString);
+              } else {
+                match.date = parseRelativeDate(value);
+              }
+            } else match[title.toLowerCase()] = value;
+            const matchLink = $(element).parent().attr("href");
+            match.link = "https://faceittracker.net" + matchLink;
+          });
+
+          matches.push(match);
+        });
+
+        console.log(matches);
+
+        if (totalWins) {
           const csgoData: CsGoData = {
-            ...result,
-            lvlImg: faceitLvl,
-            steamId: steamId,
+            userId: 1,
+            lvlImg: playerLevelImgSrc,
+            steamId,
+            elo,
+            hs,
+            matches: totalMatches,
+            winrate,
+            kd,
+            wins: totalWins,
           };
 
-          done(null, csgoData);
-        }
-      } else done(null, "noData");
+          done(null, { csgoData, matches });
+        } else done(null, "noData");
+      } else {
+        done(null, "noData");
+      }
     });
   };
 };

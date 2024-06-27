@@ -6,13 +6,18 @@ import { Request, Response } from "express";
 import passport from "./steam.js";
 import session from "express-session";
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, RecentMatch } from "@prisma/client";
 import { CsGoData, JwtUser } from "./queryTypes.js";
 import AuthMiddleware from "./middlewares/AuthMiddleware.js";
 const app = express();
+interface NewCs2Data {
+  csgoData: CsGoData;
+  matches: RecentMatch[];
+}
 
-let csgoData = {};
+let finalData: any = {};
 const allowedOrigins = [
+  "http://localhost:4173",
   "http://localhost:5173",
   "https://squadlink.vercel.app",
 ];
@@ -21,7 +26,7 @@ const prisma = new PrismaClient();
 app
   .use(
     cors({
-      origin: allowedOrigins,
+      origin: true,
       credentials: true,
     })
   )
@@ -41,8 +46,8 @@ app.use(
   })
 );
 passport.serializeUser((data, done) => {
-  if (data !== "noData") csgoData = { ...data };
-
+  if (data !== "noData") finalData = { ...data } as NewCs2Data;
+  else finalData = "noData";
   done(null, data);
 });
 app.get(
@@ -51,15 +56,19 @@ app.get(
 
   async (req, res) => {
     if (req.body) {
-      if (Object.keys(csgoData).length === 0)
+      if (finalData === "noData")
         return res
           .cookie("_csData", "noFaceit")
-          .redirect(303, `http://localhost:5173/home`);
+          .redirect(303, `http://localhost:5173/`);
+      if (Object.keys(finalData.csgoData).length === 0)
+        return res
+          .cookie("_csData", "noFaceit")
+          .redirect(303, `http://localhost:5173/`);
 
       const jwtUser: JwtUser = req.body as JwtUser;
 
       const newCsGoData = {
-        ...csgoData,
+        ...finalData.csgoData,
         userId: jwtUser.id,
       } as CsGoData;
 
@@ -69,20 +78,24 @@ app.get(
       if (checkCSdata) {
         return res
           .cookie("_csData", "exist")
-          .redirect(303, `http://localhost:5173/home`);
+          .redirect(303, `http://localhost:5173/`);
       }
       if (newCsGoData.elo === undefined)
         res
           .cookie("_csData", "noFaceit")
-          .redirect(303, `http://localhost:5173/home`);
+          .redirect(303, `http://localhost:5173/`);
 
       if (newCsGoData.elo) {
         console.log(newCsGoData);
-        const response = await prisma.cs2_data.create({
-          data: { ...newCsGoData },
+        await prisma.cs2_data.create({
+          data: {
+            ...newCsGoData,
+            recentMatches: { createMany: { data: finalData.matches } },
+          },
         });
+
         return res
-          .cookie('_gc','cs2')
+          .cookie("_gc", "cs2")
           .redirect(303, `http://localhost:5173/creation/cs2`);
       }
     }
